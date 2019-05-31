@@ -1,0 +1,434 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  ElasticsearchUserData:
+    Type: String
+  LogstashUserData:
+    Type: String
+  KibanaUserData:
+    Type: String
+  SubnetAZ2A:
+    Default: subnet-0ff8bc28a0e31780f
+  SubnetAZ2B:
+    Default: subnet-074f9499c2d9a0e00
+  SubnetAZ2C:
+    Default: subnet-01dfef4a88d7d797b
+  ElasticsearchInstancesSG:
+    Default: sg-0e1fcbc064b13a209
+  LogstashInstancesSG:
+    Default: sg-0e1fcbc064b13a209
+  KibanaInstancesSG:
+    Default: sg-0e1fcbc064b13a209
+  LogstashLBSG:
+    Default: sg-0e1fcbc064b13a209
+  KibanaLBSG:
+    Default: sg-0e1fcbc064b13a209
+Resources:
+  ElkCluster:
+    Type: 'AWS::ECS::Cluster'
+    Properties:
+      ClusterName: elk-cluster
+  ElasticsearchService:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      Cluster: !Ref ElkCluster
+      DesiredCount: 3
+      LaunchType: EC2
+      PlacementConstraints:
+        - Type: memberOf
+          Expression: 'attribute:application =~ elasticsearch'
+      Role: !Ref EC2forECSRole
+      ServiceName: elasticsearch
+      TaskDefinition: !Ref ElasticsearchTaskDef
+  LogstashService:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      Cluster: !Ref ElkCluster
+      DeploymentConfiguration:
+        MaximumPercent: 100
+        MinimumHealthyPercent: 66
+      DesiredCount: 3
+      LaunchType: EC2
+      PlacementConstraints:
+        - Type: memberOf
+          Expression: 'attribute:application =~ logstash'
+      Role: !Ref EC2forECSRole
+      ServiceName: logstash
+      TaskDefinition: !Ref LogstashTaskDef
+    DependsOn:
+      - ElasticsearchService
+  KibanaService:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      Cluster: !Ref ElkCluster
+      DeploymentConfiguration:
+        MaximumPercent: 100
+        MinimumHealthyPercent: 66
+      DesiredCount: 3
+      LaunchType: EC2
+      PlacementConstraints:
+        - Type: memberOf
+          Expression: 'attribute:application =~ kibana'
+      Role: !Ref EC2forECSRole
+      ServiceName: kibana
+      TaskDefinition: !Ref KibanaTaskDef
+    DependsOn:
+      - ElasticsearchService
+  ElasticsearchTaskDef:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      ContainerDefinitions:
+        -
+          Name: "elasticsearch"
+          MountPoints:
+            -
+              SourceVolume: "esdata"
+              ContainerPath: "/usr/share/elasticsearch/data"
+          Image: "217554036865.dkr.ecr.eu-west-2.amazonaws.com/accenture/elasticsearch:latest"
+          Memory: "2048"
+          Essential: "true"
+          Privileged: "true"
+          Interactive: "true"
+          PortMappings:
+            - ContainerPort: "9200"
+              HostPort: "9200"
+            - ContainerPort: "9300"
+              HostPort: "9300"
+          LogConfiguration:
+            LogDriver: "awslogs"
+            Options:
+              "awslogs-region": "eu-west-2",
+              "awslogs-group": "elasticsearch",
+              "awslogs-stream-prefix": "elk-ecs"
+          Ulimits:
+            - HardLimit: "65536"
+              Name: "nofile"
+              SoftLimit: "65536"
+            - HardLimit: "-1"
+              Name: "memlock"
+              SoftLimit: "-1"
+      Family: elasticsearch
+      NetworkMode: bridge
+      Volumes:
+        -  DockerVolumeConfiguration:
+             Autoprovision: true
+             Scope: shared
+           Name: esdata
+  LogstashTaskDef:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      ContainerDefinitions:
+        -
+          Name: "logstash"
+          Image: "217554036865.dkr.ecr.eu-west-2.amazonaws.com/accenture/logstash:latest"
+          Memory: "2048"
+          Interactive: "true"
+          PortMappings:
+            - ContainerPort: "5044"
+              HostPort: "5044"
+            - ContainerPort: "9600"
+              HostPort: "9600"
+          LogConfiguration:
+            LogDriver: "awslogs"
+            Options:
+              "awslogs-region": "eu-west-2",
+              "awslogs-group": "logstash",
+              "awslogs-stream-prefix": "elk-ecs"
+      Family: logstash
+      NetworkMode: bridge
+  KibanaTaskDef:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      ContainerDefinitions:
+        -
+          Name: "kibana"
+          Image: "217554036865.dkr.ecr.eu-west-2.amazonaws.com/accenture/kibana:latest"
+          Memory: "2048"
+          Interactive: "true"
+          PortMappings:
+            - ContainerPort: "5601"
+              HostPort: "5601"
+          LogConfiguration:
+            LogDriver: "awslogs"
+            Options:
+              "awslogs-region": "eu-west-2",
+              "awslogs-group": "kibana",
+              "awslogs-stream-prefix": "elk-ecs"
+      Family: kibana
+      NetworkMode: bridge
+  EC2forECSRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Name: elk-ecs-instance-role
+      Path: "/ecs/"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole'
+        - 'arn:aws:iam::aws:policy/CloudWatchLogsFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess'
+  ELKInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: elk-ecs-instance-profile
+      Roles:
+        - !Ref EC2forECSRole
+  Elasticsearch2A:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-0204aa6a92a54561e
+      SubnetId: !Ref SubnetAZ2A
+      PrivateIpAddress: 10.10.200.4
+      InstanceType: t2.medium
+      SecurityGroupIds:
+        - !Ref ElasticsearchInstancesSG
+      IamInstanceProfile: !Ref ELKInstanceProfile
+      UserData: !Ref ElasticsearchUserData
+      KeyName: accentKey
+      Tags:
+        - Key: Name
+          Value: elasticsearch-2a
+        - Key: Environment
+          Value: production
+        - Key: Cluster
+          Value: elk-cluster
+  Elasticsearch2B:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-0204aa6a92a54561e
+      SubnetId: !Ref SubnetAZ2B
+      PrivateIpAddress: 10.10.210.4
+      InstanceType: t2.medium
+      SecurityGroupIds:
+        - !Ref ElasticsearchInstancesSG
+      IamInstanceProfile: !Ref ELKInstanceProfile
+      UserData: !Ref ElasticsearchUserData
+      KeyName: accentKey
+      Tags:
+        - Key: Name
+          Value: elasticsearch-2b
+        - Key: Environment
+          Value: production
+        - Key: Cluster
+          Value: elk-cluster
+  Elasticsearch2C:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-0204aa6a92a54561e
+      SubnetId: !Ref SubnetAZ2C
+      PrivateIpAddress: 10.10.220.4
+      InstanceType: t2.medium
+      SecurityGroupIds:
+        - !Ref ElasticsearchInstancesSG
+      IamInstanceProfile: !Ref ELKInstanceProfile
+      UserData: !Ref ElasticsearchUserData
+      KeyName: accentKey
+      Tags:
+        - Key: Name
+          Value: elasticsearch-2c
+        - Key: Environment
+          Value: production
+        - Key: Cluster
+          Value: elk-cluster
+  Logstash2A:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-0204aa6a92a54561e
+      SubnetId: !Ref SubnetAZ2A
+      PrivateIpAddress: 10.10.200.5
+      InstanceType: t2.medium
+      SecurityGroupIds:
+        - !Ref LogstashInstancesSG
+      IamInstanceProfile: !Ref ELKInstanceProfile
+      UserData: !Ref LogstashUserData
+      KeyName: accentKey
+      Tags:
+        - Key: Name
+          Value: logstash-2a
+        - Key: Environment
+          Value: production
+        - Key: Cluster
+          Value: elk-cluster
+  Logstash2B:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-0204aa6a92a54561e
+      SubnetId: !Ref SubnetAZ2B
+      PrivateIpAddress: 10.10.210.5
+      InstanceType: t2.medium
+      SecurityGroupIds:
+        - !Ref LogstashInstancesSG
+      IamInstanceProfile: !Ref ELKInstanceProfile
+      UserData: !Ref LogstashUserData
+      KeyName: accentKey
+      Tags:
+        - Key: Name
+          Value: logstash-2b
+        - Key: Environment
+          Value: production
+        - Key: Cluster
+          Value: elk-cluster
+  Logstash2C:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-0204aa6a92a54561e
+      SubnetId: !Ref SubnetAZ2C
+      PrivateIpAddress: 10.10.220.5
+      InstanceType: t2.medium
+      SecurityGroupIds:
+        - !Ref LogstashInstancesSG
+      IamInstanceProfile: !Ref ELKInstanceProfile
+      UserData: !Ref LogstashUserData
+      KeyName: accentKey
+      Tags:
+        - Key: Name
+          Value: logstash-2c
+        - Key: Environment
+          Value: production
+        - Key: Cluster
+          Value: elk-cluster
+  Kibana2A:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-0204aa6a92a54561e
+      SubnetId: !Ref SubnetAZ2A
+      PrivateIpAddress: 10.10.200.6
+      InstanceType: t2.medium
+      SecurityGroupIds:
+        - !Ref KibanaInstancesSG
+      IamInstanceProfile: !Ref ELKInstanceProfile
+      UserData: !Ref KibanaUserData
+      KeyName: accentKey
+      Tags:
+        - Key: Name
+          Value: kibana-2a
+        - Key: Environment
+          Value: production
+        - Key: Cluster
+          Value: elk-cluster
+  Kibana2B:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-0204aa6a92a54561e
+      SubnetId: !Ref SubnetAZ2B
+      PrivateIpAddress: 10.10.210.6
+      InstanceType: t2.medium
+      SecurityGroupIds:
+        - !Ref KibanaInstancesSG
+      IamInstanceProfile: !Ref ELKInstanceProfile
+      UserData: !Ref KibanaUserData
+      KeyName: accentKey
+      Tags:
+        - Key: Name
+          Value: kibana-2b
+        - Key: Environment
+          Value: production
+        - Key: Cluster
+          Value: elk-cluster
+  Kibana2C:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-0204aa6a92a54561e
+      SubnetId: !Ref SubnetAZ2C
+      PrivateIpAddress: 10.10.220.6
+      InstanceType: t2.medium
+      SecurityGroupIds:
+        - !Ref KibanaInstancesSG
+      IamInstanceProfile: !Ref ELKInstanceProfile
+      UserData: !Ref KibanaUserData
+      KeyName: accentKey
+      Tags:
+        - Key: Name
+          Value: kibana-2c
+        - Key: Environment
+          Value: production
+        - Key: Cluster
+          Value: elk-cluster
+  LogstashALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: logstash-lb
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref LogstashLBSG
+      Subnets:
+        - !Ref SubnetAZ2A
+        - !Ref SubnetAZ2B
+        - !Ref SubnetAZ2C
+      Type: application
+  KibanaALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: logstash-lb
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref KibanaLBSG
+      Subnets:
+        - !Ref SubnetAZ2A
+        - !Ref SubnetAZ2B
+        - !Ref SubnetAZ2C
+      Type: application
+  LogstashTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckEnabled: true
+      HealthCheckPath: "/?pretty"
+      HealthCheckPort: 9600
+      HealthCheckTimeoutSeconds: 2
+      HealthyThresholdCount: 5
+      Matcher:
+        HttpCode: "200"
+      Name: logstash-lb-tg
+      Port: 5044
+      Protocol: HTTP
+      TargetType: instance
+      Targets:
+        - !Ref Logstash2A
+        - !Ref Logstash2B
+        - !Ref Logstash2C
+      UnhealthyThresholdCount: 2
+      VpcId: vpc-0116e9499d2eadf31
+  KibanaTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckEnabled: true
+      HealthCheckPath: "/app/kibana"
+      HealthCheckPort: 5601
+      HealthCheckTimeoutSeconds: 2
+      HealthyThresholdCount: 5
+      Matcher:
+        HttpCode: "200"
+      Name: kibana-lb-tg
+      Port: 5601
+      Protocol: HTTP
+      TargetType: instance
+      Targets:
+        - !Ref Kibana2A
+        - !Ref Kibana2B
+        - !Ref Kibana2C
+      UnhealthyThresholdCount: 2
+      VpcId: vpc-0116e9499d2eadf31
+  LogstashLBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        -  TargetGroupArn: !Ref LogstashTargetGroup
+           Type: forward
+      LoadBalancerArn: !Ref LogstashALB
+      Port: 5044
+      Protocol: HTTP
+  KibanaLBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        -  TargetGroupArn: !Ref KibanaTargetGroup
+           Type: forward
+      LoadBalancerArn: !Ref KibanaALB
+      Port: 80
+      Protocol: HTTP
