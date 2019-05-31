@@ -95,7 +95,6 @@ Resources:
           Memory: "2048"
           Essential: "true"
           Privileged: "true"
-          Interactive: "true"
           PortMappings:
             - ContainerPort: "9200"
               HostPort: "9200"
@@ -129,7 +128,6 @@ Resources:
           Name: "logstash"
           Image: "217554036865.dkr.ecr.eu-west-2.amazonaws.com/accenture/logstash:latest"
           Memory: "2048"
-          Interactive: "true"
           PortMappings:
             - ContainerPort: "5044"
               HostPort: "5044"
@@ -151,7 +149,6 @@ Resources:
           Name: "kibana"
           Image: "217554036865.dkr.ecr.eu-west-2.amazonaws.com/accenture/kibana:latest"
           Memory: "2048"
-          Interactive: "true"
           PortMappings:
             - ContainerPort: "5601"
               HostPort: "5601"
