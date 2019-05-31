@@ -243,7 +243,6 @@ Resources:
     Properties:
       ImageId: ami-0204aa6a92a54561e
       SubnetId: !Ref SubnetAZ2A
-      PrivateIpAddress: 10.10.200.5
       InstanceType: t2.medium
       SecurityGroupIds:
         - !Ref LogstashInstancesSG
@@ -262,7 +261,6 @@ Resources:
     Properties:
       ImageId: ami-0204aa6a92a54561e
       SubnetId: !Ref SubnetAZ2B
-      PrivateIpAddress: 10.10.210.5
       InstanceType: t2.medium
       SecurityGroupIds:
         - !Ref LogstashInstancesSG
@@ -281,7 +279,6 @@ Resources:
     Properties:
       ImageId: ami-0204aa6a92a54561e
       SubnetId: !Ref SubnetAZ2C
-      PrivateIpAddress: 10.10.220.5
       InstanceType: t2.medium
       SecurityGroupIds:
         - !Ref LogstashInstancesSG
@@ -300,7 +297,6 @@ Resources:
     Properties:
       ImageId: ami-0204aa6a92a54561e
       SubnetId: !Ref SubnetAZ2A
-      PrivateIpAddress: 10.10.200.6
       InstanceType: t2.medium
       SecurityGroupIds:
         - !Ref KibanaInstancesSG
@@ -319,7 +315,6 @@ Resources:
     Properties:
       ImageId: ami-0204aa6a92a54561e
       SubnetId: !Ref SubnetAZ2B
-      PrivateIpAddress: 10.10.210.6
       InstanceType: t2.medium
       SecurityGroupIds:
         - !Ref KibanaInstancesSG
@@ -338,7 +333,6 @@ Resources:
     Properties:
       ImageId: ami-0204aa6a92a54561e
       SubnetId: !Ref SubnetAZ2C
-      PrivateIpAddress: 10.10.220.6
       InstanceType: t2.medium
       SecurityGroupIds:
         - !Ref KibanaInstancesSG
