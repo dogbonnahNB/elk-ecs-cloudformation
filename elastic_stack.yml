@@ -130,8 +130,8 @@ Resources:
           LogConfiguration:
             LogDriver: "awslogs"
             Options:
-              "awslogs-region": "eu-west-2",
-              "awslogs-group": "logstash",
+              "awslogs-region": "eu-west-2"
+              "awslogs-group": "logstash"
               "awslogs-stream-prefix": "elk-ecs"
       Family: logstash
       NetworkMode: bridge
@@ -150,8 +150,8 @@ Resources:
           LogConfiguration:
             LogDriver: "awslogs"
             Options:
-              "awslogs-region": "eu-west-2",
-              "awslogs-group": "kibana",
+              "awslogs-region": "eu-west-2"
+              "awslogs-group": "kibana"
               "awslogs-stream-prefix": "elk-ecs"
       Family: kibana
       NetworkMode: bridge
