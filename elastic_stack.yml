@@ -96,8 +96,8 @@ Resources:
           LogConfiguration:
             LogDriver: "awslogs"
             Options:
-              "awslogs-region": "eu-west-2",
-              "awslogs-group": "elasticsearch",
+              "awslogs-region": "eu-west-2"
+              "awslogs-group": "elasticsearch"
               "awslogs-stream-prefix": "elk-ecs"
           Ulimits:
             - HardLimit: "65536"
