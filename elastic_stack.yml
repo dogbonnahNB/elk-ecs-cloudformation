@@ -60,8 +60,6 @@ Resources:
           Expression: 'attribute:application =~ logstash'
       ServiceName: logstash
       TaskDefinition: !Ref LogstashTaskDef
-    DependsOn:
-      - ElasticsearchService
   KibanaService:
     Type: 'AWS::ECS::Service'
     Properties:
@@ -76,8 +74,6 @@ Resources:
           Expression: 'attribute:application =~ kibana'
       ServiceName: kibana
       TaskDefinition: !Ref KibanaTaskDef
-    DependsOn:
-      - ElasticsearchService
   ElasticsearchTaskDef:
     Type: 'AWS::ECS::TaskDefinition'
     Properties:
