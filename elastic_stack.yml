@@ -370,7 +370,7 @@ Resources:
   KibanaALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: logstash-lb
+      Name: kibana-lb
       Scheme: internet-facing
       SecurityGroups:
         - !Ref KibanaLBSG
