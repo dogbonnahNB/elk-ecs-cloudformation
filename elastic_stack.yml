@@ -391,9 +391,9 @@ Resources:
       Protocol: HTTP
       TargetType: instance
       Targets:
-        - !Ref Logstash2A
-        - !Ref Logstash2B
-        - !Ref Logstash2C
+        - Id: !Ref Logstash2A
+        - Id: !Ref Logstash2B
+        - Id: !Ref Logstash2C
       UnhealthyThresholdCount: 2
       VpcId: vpc-0116e9499d2eadf31
   KibanaTargetGroup:
@@ -411,9 +411,9 @@ Resources:
       Protocol: HTTP
       TargetType: instance
       Targets:
-        - !Ref Kibana2A
-        - !Ref Kibana2B
-        - !Ref Kibana2C
+        - Id: !Ref Kibana2A
+        - Id: !Ref Kibana2B
+        - Id: !Ref Kibana2C
       UnhealthyThresholdCount: 2
       VpcId: vpc-0116e9499d2eadf31
   LogstashLBListener:
