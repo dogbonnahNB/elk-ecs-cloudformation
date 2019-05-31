@@ -163,7 +163,7 @@ Resources:
   EC2forECSRole:
     Type: AWS::IAM::Role
     Properties:
-      Name: elk-ecs-instance-role
+      RoleName: elk-ecs-instance-role
       Path: "/ecs/"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
