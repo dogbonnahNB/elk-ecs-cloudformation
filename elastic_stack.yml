@@ -44,7 +44,6 @@ Resources:
       PlacementConstraints:
         - Type: memberOf
           Expression: 'attribute:application =~ elasticsearch'
-      Role: !Ref EC2forECSRole
       ServiceName: elasticsearch
       TaskDefinition: !Ref ElasticsearchTaskDef
   LogstashService:
@@ -59,7 +58,6 @@ Resources:
       PlacementConstraints:
         - Type: memberOf
           Expression: 'attribute:application =~ logstash'
-      Role: !Ref EC2forECSRole
       ServiceName: logstash
       TaskDefinition: !Ref LogstashTaskDef
     DependsOn:
@@ -76,7 +74,6 @@ Resources:
       PlacementConstraints:
         - Type: memberOf
           Expression: 'attribute:application =~ kibana'
-      Role: !Ref EC2forECSRole
       ServiceName: kibana
       TaskDefinition: !Ref KibanaTaskDef
     DependsOn:
