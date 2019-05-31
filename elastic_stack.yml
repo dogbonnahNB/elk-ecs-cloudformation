@@ -7,20 +7,28 @@ Parameters:
   KibanaUserData:
     Type: String
   SubnetAZ2A:
+    Type: String
     Default: subnet-0ff8bc28a0e31780f
   SubnetAZ2B:
+    Type: String
     Default: subnet-074f9499c2d9a0e00
   SubnetAZ2C:
+    Type: String
     Default: subnet-01dfef4a88d7d797b
   ElasticsearchInstancesSG:
+    Type: String
     Default: sg-0e1fcbc064b13a209
   LogstashInstancesSG:
+    Type: String
     Default: sg-0e1fcbc064b13a209
   KibanaInstancesSG:
+    Type: String
     Default: sg-0e1fcbc064b13a209
   LogstashLBSG:
+    Type: String
     Default: sg-0e1fcbc064b13a209
   KibanaLBSG:
+    Type: String
     Default: sg-0e1fcbc064b13a209
 Resources:
   ElkCluster:
