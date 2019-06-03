@@ -41,9 +41,6 @@ Resources:
       Cluster: !GetAtt ElkCluster.Arn
       DesiredCount: 3
       LaunchType: EC2
-      PlacementConstraints:
-        - Type: memberOf
-          Expression: 'attribute:application =~ elasticsearch'
       ServiceName: elasticsearch
       TaskDefinition: !Ref ElasticsearchTaskDef
   LogstashService:
@@ -55,9 +52,6 @@ Resources:
         MinimumHealthyPercent: 66
       DesiredCount: 3
       LaunchType: EC2
-      PlacementConstraints:
-        - Type: memberOf
-          Expression: 'attribute:application =~ logstash'
       ServiceName: logstash
       TaskDefinition: !Ref LogstashTaskDef
     DependsOn:
@@ -71,9 +65,6 @@ Resources:
         MinimumHealthyPercent: 66
       DesiredCount: 3
       LaunchType: EC2
-      PlacementConstraints:
-        - Type: memberOf
-          Expression: 'attribute:application =~ kibana'
       ServiceName: kibana
       TaskDefinition: !Ref KibanaTaskDef
     DependsOn:
@@ -82,11 +73,9 @@ Resources:
     Type: 'AWS::ECS::TaskDefinition'
     Properties:
       ContainerDefinitions:
-        -
-          Name: "elasticsearch"
+        - Name: "elasticsearch"
           MountPoints:
-            -
-              SourceVolume: "esdata"
+            - SourceVolume: "esdata"
               ContainerPath: "/usr/share/elasticsearch/data"
           Image: "217554036865.dkr.ecr.eu-west-2.amazonaws.com/accenture/elasticsearch:latest"
           Memory: "2048"
@@ -100,9 +89,9 @@ Resources:
           LogConfiguration:
             LogDriver: "awslogs"
             Options:
-              "awslogs-region": "eu-west-2"
-              "awslogs-group": "elasticsearch"
-              "awslogs-stream-prefix": "elk-ecs"
+              awslogs-region: "eu-west-2"
+              awslogs-group: "elasticsearch"
+              awslogs-stream-prefix: "elk-ecs"
           Ulimits:
             - HardLimit: "65536"
               Name: "nofile"
@@ -110,6 +99,9 @@ Resources:
             - HardLimit: "-1"
               Name: "memlock"
               SoftLimit: "-1"
+      PlacementConstraints:
+        - Type: memberOf
+          Expression: 'attribute:application =~ elasticsearch'
       Family: elasticsearch
       NetworkMode: bridge
       Volumes:
@@ -121,8 +113,7 @@ Resources:
     Type: 'AWS::ECS::TaskDefinition'
     Properties:
       ContainerDefinitions:
-        -
-          Name: "logstash"
+        - Name: "logstash"
           Image: "217554036865.dkr.ecr.eu-west-2.amazonaws.com/accenture/logstash:latest"
           Memory: "2048"
           PortMappings:
@@ -133,17 +124,19 @@ Resources:
           LogConfiguration:
             LogDriver: "awslogs"
             Options:
-              "awslogs-region": "eu-west-2"
-              "awslogs-group": "logstash"
-              "awslogs-stream-prefix": "elk-ecs"
+              awslogs-region: "eu-west-2"
+              awslogs-group: "logstash"
+              awslogs-stream-prefix: "elk-ecs"
+      PlacementConstraints:
+        - Type: memberOf
+          Expression: 'attribute:application =~ logstash'
       Family: logstash
       NetworkMode: bridge
   KibanaTaskDef:
     Type: 'AWS::ECS::TaskDefinition'
     Properties:
       ContainerDefinitions:
-        -
-          Name: "kibana"
+        - Name: "kibana"
           Image: "217554036865.dkr.ecr.eu-west-2.amazonaws.com/accenture/kibana:latest"
           Memory: "2048"
           PortMappings:
@@ -152,16 +145,19 @@ Resources:
           LogConfiguration:
             LogDriver: "awslogs"
             Options:
-              "awslogs-region": "eu-west-2"
-              "awslogs-group": "kibana"
-              "awslogs-stream-prefix": "elk-ecs"
+              awslogs-region: "eu-west-2"
+              awslogs-group: "kibana"
+              awslogs-stream-prefix: "elk-ecs"
+      PlacementConstraints:
+        - Type: memberOf
+          Expression: 'attribute:application =~ kibana'
       Family: kibana
       NetworkMode: bridge
   EC2forECSRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: elk-ecs-instance-role
-      Path: "/ecs/"
+      Path: "/"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -436,3 +432,18 @@ Resources:
       LoadBalancerArn: !Ref KibanaALB
       Port: 80
       Protocol: HTTP
+  ElasticsearchLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: elasticsearch
+      RetentionInDays: 3
+  LogstashLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: Logstash
+      RetentionInDays: 3
+  KibanaLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: kibana
+      RetentionInDays: 3
