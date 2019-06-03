@@ -43,6 +43,10 @@ Resources:
       LaunchType: EC2
       ServiceName: elasticsearch
       TaskDefinition: !Ref ElasticsearchTaskDef
+    DependsOn:
+      - Elasticsearch2A
+      - Elasticsearch2B
+      - Elasticsearch2C
   LogstashService:
     Type: 'AWS::ECS::Service'
     Properties:
@@ -56,6 +60,9 @@ Resources:
       TaskDefinition: !Ref LogstashTaskDef
     DependsOn:
       - ElasticsearchService
+      - Logstash2A
+      - Logstash2B
+      - Logstash2C
   KibanaService:
     Type: 'AWS::ECS::Service'
     Properties:
@@ -69,6 +76,9 @@ Resources:
       TaskDefinition: !Ref KibanaTaskDef
     DependsOn:
       - ElasticsearchService
+      - Kibana2A
+      - Kibana2B
+      - Kibana2C
   ElasticsearchTaskDef:
     Type: 'AWS::ECS::TaskDefinition'
     Properties:
