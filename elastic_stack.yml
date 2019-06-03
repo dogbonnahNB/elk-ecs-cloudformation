@@ -450,7 +450,7 @@ Resources:
   LogstashLogs:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: Logstash
+      LogGroupName: logstash
       RetentionInDays: 3
   KibanaLogs:
     Type: AWS::Logs::LogGroup
