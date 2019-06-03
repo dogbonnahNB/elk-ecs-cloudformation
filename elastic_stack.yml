@@ -60,6 +60,8 @@ Resources:
           Expression: 'attribute:application =~ logstash'
       ServiceName: logstash
       TaskDefinition: !Ref LogstashTaskDef
+    DependsOn:
+      - ElasticsearchService
   KibanaService:
     Type: 'AWS::ECS::Service'
     Properties:
@@ -74,6 +76,8 @@ Resources:
           Expression: 'attribute:application =~ kibana'
       ServiceName: kibana
       TaskDefinition: !Ref KibanaTaskDef
+    DependsOn:
+      - ElasticsearchService
   ElasticsearchTaskDef:
     Type: 'AWS::ECS::TaskDefinition'
     Properties:
@@ -354,6 +358,10 @@ Resources:
         - !Ref SubnetAZ2B
         - !Ref SubnetAZ2C
       Type: application
+    DependsOn:
+      - Elasticsearch2A
+      - Elasticsearch2B
+      - Elasticsearch2C
   KibanaALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -366,6 +374,10 @@ Resources:
         - !Ref SubnetAZ2B
         - !Ref SubnetAZ2C
       Type: application
+    DependsOn:
+      - Elasticsearch2A
+      - Elasticsearch2B
+      - Elasticsearch2C
   LogstashTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
