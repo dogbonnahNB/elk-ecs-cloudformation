@@ -38,7 +38,7 @@ Resources:
   ElasticsearchService:
     Type: 'AWS::ECS::Service'
     Properties:
-      Cluster: !Ref ElkCluster
+      Cluster: !GetAtt ElkCluster.Arn
       DesiredCount: 3
       LaunchType: EC2
       PlacementConstraints:
@@ -49,7 +49,7 @@ Resources:
   LogstashService:
     Type: 'AWS::ECS::Service'
     Properties:
-      Cluster: !Ref ElkCluster
+      Cluster: !GetAtt ElkCluster.Arn
       DeploymentConfiguration:
         MaximumPercent: 100
         MinimumHealthyPercent: 66
@@ -63,7 +63,7 @@ Resources:
   KibanaService:
     Type: 'AWS::ECS::Service'
     Properties:
-      Cluster: !Ref ElkCluster
+      Cluster: !GetAtt ElkCluster.Arn
       DeploymentConfiguration:
         MaximumPercent: 100
         MinimumHealthyPercent: 66

@@ -11,5 +11,3 @@ echo "ECS_INSTANCE_ATTRIBUTES={\"application\": \"logstash\"}" >> /etc/ecs/ecs.c
 start ecs
 
 echo "Done"
-
---==BOUNDARY==--

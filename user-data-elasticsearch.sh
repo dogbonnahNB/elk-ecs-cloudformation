@@ -16,5 +16,3 @@ echo "ECS_INSTANCE_ATTRIBUTES={\"application\": \"elasticsearch\"}" >> /etc/ecs/
 start ecs
 
 echo "Done"
-
---==BOUNDARY==--

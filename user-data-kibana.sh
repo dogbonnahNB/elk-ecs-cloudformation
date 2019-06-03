@@ -11,5 +11,3 @@ echo "ECS_INSTANCE_ATTRIBUTES={\"application\": \"kibana\"}" >> /etc/ecs/ecs.con
 start ecs
 
 echo "Done"
-
---==BOUNDARY==--
