@@ -178,7 +178,7 @@ Resources:
             Action:
               - "sts:AssumeRole"
       ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole'
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role'
         - 'arn:aws:iam::aws:policy/CloudWatchLogsFullAccess'
         - 'arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess'
   ELKInstanceProfile:
